@@ -16,7 +16,7 @@ def valid_moves(state):
     return moves
 
 def build_tree(state, graph, depth=0, max_depth=5):
-    if depth > max_depth or state == 'MMMVVGGG':
+    if depth > max_depth or state == 'MMMVGGG':
         return
     moves = valid_moves(state)
     for move in moves:
@@ -24,10 +24,10 @@ def build_tree(state, graph, depth=0, max_depth=5):
             build_tree(move, graph, depth+1, max_depth)
         graph.add_edge(state, move)
 
-state = "GGGVVMMM"
+state = "GGGVMMM"
 graph = nx.DiGraph()
 build_tree(state, graph)
 
 pos = graphviz_layout(graph, prog="dot")
-nx.draw(graph, pos, with_labels=True, node_size=500, node_color="lightblue", arrowsize=10)
+nx.draw(graph, pos, with_labels=True, node_size=600, node_color="lightblue", arrowsize=10)
 plt.show()
