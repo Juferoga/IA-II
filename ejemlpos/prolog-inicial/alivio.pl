@@ -1,0 +1,14 @@
+padece(gripe,pedro).
+padece(gripe,maria).
+padece(hepatitis,pedro).
+padece(hepatitis,juan).
+padece(intoxicacion,carlos).
+sintoma(gripe,fiebre).
+sintoma(intoxicacion,diarrea).
+sintoma(gripe,cansancio).
+sintoma(hepatitis,cansancio).
+suprime(fiebre,aspirina).
+suprime(diarrea,lomotil).
+presenta(Sintoma,Persona):-padece(Enfermedad,Persona),sintoma(Enfermedad,Sintoma).
+alivia(Enfermedad,Farmaco):-sintoma(Enfermedad,Sintoma),suprime(Sintoma,Farmaco).
+formula(Farmaco,Persona):-padece(Enfermedad,Persona),alivia(Enfermedad,Farmaco).
