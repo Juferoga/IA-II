@@ -1,62 +1,142 @@
-:- dynamic animal/2.
+:- dynamic verificar/1, hipotesis/2.
 
-% Base de conocimiento inicial
-% Mamíferos
-animal(mono_titi, [mamifero, selva, cola_larga, simio]).
-animal(jaguar, [mamifero, selva, carnivoro, felino]).
-animal(venado_coliblanco, [mamifero, sabana, herbivoro, rumiante]).
-animal(oso_de_antioquia, [mamifero, bosque, omnivoro, ursido]).
+% Pide al usuario ingresar características de un animal y verifica si se ajustan a una hipótesis.
+identificar_animal :- 
+    retractall(verificar(_)), % Limpiar las características previas.
+    write('Ingresa las características del animal (escribe "fin" para terminar):\n'),
+    identificar.
 
-% Aves
-animal(condor_de_los_andes, [ave, montaña, volador, carroñero]).
-animal(guacamaya_bandera, [ave, selva, volador, psitacido]).
-animal(garza_real, [ave, humedal, volador, zancudo]).
-animal(canario, [ave, bosque, volador, passeriforme]).
+% Lee las características ingresadas por el usuario.
+identificar :-
+    read(Caracteristica),
+    (Caracteristica == 'fin' -> determinar_animal; 
+    assert(verificar(Caracteristica)),
+    identificar).
 
-% Reptiles
-animal(caiman_del_magdalena, [reptil, agua_dulce, carnivoro, lagarto]).
-animal(iguana_verde, [reptil, selva, herbivoro, lagarto]).
-animal(boa_constrictor, [reptil, selva, carnivoro, serpiente]).
-animal(tortuga_mora, [reptil, sabana, herbivoro, quelonio]).
+% Determina a qué animal corresponde según las características ingresadas.
+determinar_animal :-
+    (hipotesis(Animal) -> 
+    write('El animal es un '), write(Animal), nl;
+    write('No se pudo identificar el animal.')),
+    retractall(verificar(_)).
 
-% Anfibios
-animal(rana_dorada, [anfibio, selva, venenoso, anuro]).
-animal(sapo_comun, [anfibio, humedal, insectivoro, anuro]).
-animal(salamandra_comun, [anfibio, bosque, insectivoro, caudado]).
-animal(rana_arboricola, [anfibio, selva, insectivoro, anuro]).
+% Hipótesis
 
-% Peces
-animal(trucha_arcoiris, [pez, agua_dulce, omnivoro, salmonido]).
-animal(pirarucu, [pez, agua_dulce, carnivoro, osteogloso]).
-animal(mojarra, [pez, agua_dulce, omnivoro, cichlido]).
-animal(tiburon_martillo, [pez, marino, carnivoro, selacio]).
+%mamiferos
+hipotesis(mono_titi) :- 
+    verificar(mamifero),
+    verificar(selva),
+    verificar(cola_larga),
+    verificar(simio).
 
-% Insectos
-animal(mariposa_morpho, [insecto, selva, volador, lepidoptero]).
-animal(hormiga_cortadora, [insecto, selva, terrestre, formicido]).
-animal(abeja_africana, [insecto, campo, volador, apido]).
-animal(escarabajo_hercules, [insecto, bosque, terrestre, escarabeido]).
+hipotesis(jaguar) :- 
+    verificar(mamifero),
+    verificar(selva),
+    verificar(carnivoro),
+    verificar(felino).
 
-preguntar:-
-    write('Escriba la lista de características del animal (terminando con punto). Ejemplo: [mamifero, selva]. '), 
-    read(Caracteristicas), nl,
-    assert(animal(desconocido, Caracteristicas)),
-    inferir.
+hipotesis(venado_coliblanco) :- 
+    verificar(mamifero),
+    verificar(sabana),
+    verificar(herbivoro),
+    verificar(rumiante).
 
-inferir:-
-    animal(Nombre, Caracteristicas),
-    animal(desconocido, Desconocido),
-    subset(Caracteristicas, Desconocido),
-    write('El animal podría ser un '), write(Nombre), nl, undo;
-    write('No se pudo determinar el animal con las características dadas.'), nl, undo.
+hipotesis(oso_de_antioquia) :- 
+    verificar(mamifero),
+    verificar(bosque),
+    verificar(omnivoro),
+    verificar(ursido).
 
-% Para deshacer todas los axiomas
-undo:- retract(animal(_,_)), fail.
-undo.
+%aves
+hipotesis(condor_de_los_andes) :- 
+    verificar(ave),
+    verificar(montaña),
+    verificar(volador),
+    verificar(carroñero).
 
-% Para agregar nuevos animales a la base de conocimiento
-agregar_animal:-
-    write('Ingrese el nombre del animal (terminando con punto). '), read(Nombre), nl,
-    write('Ingrese la lista de características (terminando con punto). '), read(Caracteristicas), nl,
-    assert(animal(Nombre, Caracteristicas)),
-    write('Animal agregado exitosamente.'), nl.
+hipotesis(guacamaya_bandera) :- 
+    verificar(ave),
+    verificar(selva),
+    verificar(volador),
+    verificar(psitacido).
+
+hipotesis(garza_real) :- 
+    verificar(ave),
+    verificar(humedal),
+    verificar(volador),
+    verificar(zancudo).
+
+hipotesis(canario) :- 
+    verificar(ave),
+    verificar(bosque),
+    verificar(volador),
+    verificar(passeriforme).
+
+
+
+hipotesis(desconocido). % Si no se puede identificar ningún animal.
+
+% Función para verificar características del animal ingresado por el usuario
+verificar_caracteristicas :-
+    write('Ingresa el nombre del animal: '),
+    read(Animal),
+    findall(Caracteristica, caracteristicas_anim3al(Animal, Caracteristica), ListaCaracteristicas),
+    preguntar_caracteristicas(ListaCaracteristicas, Respuestas),
+    (todas_correctas(Respuestas) -> 
+        write('¡Felicidades! Las características son correctas.\n');
+        write('Las características no corresponden al animal.\n')).
+
+caracteristicas_animal(Animal, Caracteristica) :-
+    clause(hipotesis(Animal), Body),
+    body_to_list(Body, List),
+    member(verificar(Caracteristica), List).
+
+body_to_list(true, []).
+body_to_list((A, B), [A|Rest]) :- body_to_list(B, Rest).
+body_to_list(A, [A]).
+
+preguntar_caracteristicas([], []).
+preguntar_caracteristicas([Caracteristica|Resto], [Respuesta|RestoRespuestas]) :-
+    format('¿El animal ~w? (si/no) ', [Caracteristica]),
+    read(Respuesta),
+    preguntar_caracteristicas(Resto, RestoRespuestas).
+
+todas_correctas([]).
+todas_correctas([si|Resto]) :- todas_correctas(Resto).
+
+% Agregar un nuevo animal y sus características.
+agregar_animal :-
+    write('Ingresa el nombre del nuevo animal: '),
+    read(NuevoAnimal),
+    write('Ingresa las características del nuevo animal (escribe "fin" para terminar):\n'),
+    agregar_caracteristicas(NuevoAnimal, Caracteristicas),
+    construir_hipotesis(NuevoAnimal, Caracteristicas).
+
+agregar_caracteristicas(Animal, Caracteristicas) :-
+    read(Caracteristica),
+    (Caracteristica == 'fin' ->
+        Caracteristicas = [];
+        agregar_caracteristicas(Animal, RestoCaracteristicas),
+        Caracteristicas = [Caracteristica|RestoCaracteristicas]).
+
+construir_hipotesis(Animal, []) :-
+    assertz(hipotesis(Animal)).
+construir_hipotesis(Animal, [Caracteristica|Resto]) :-
+    construir_hipotesis(Animal, Resto),
+    assertz((hipotesis(Animal) :- verificar(Caracteristica))).
+
+% Programa principal
+inicio :-
+    write('Selecciona una opción:\n'),
+    write('1. Identificar animal por características.\n'),
+    write('2. Verificar características de un animal.\n'),
+    write('3. Verificar características de un animal.\n'),
+    read(Opcion),
+    (Opcion == 1 -> identificar_animal; 
+     Opcion == 2 -> verificar_caracteristicas;
+     Opcion == 3 -> agregar_animal;
+     write('Opción no válida.\n')), % Manejar opciones inválidas.
+    inicio. % Vuelve al menú después de completar una opción.
+
+% Ejecuta el programa
+:- inicio.
