@@ -1,60 +1,13 @@
-breed [personas persona]
-globals [
-  contador-correr
-  contador-shock
-  contador-paralizado
-  contador-buscar-amigos
-  contador-calmado
-  contador-H
-  contador-M
-  contador
-]
-
-
-personas-own [
-  genero
-  comportamiento
-  carrera
-]
+globals [contador]
 
 to setup
   clear-all
-  setup-entorno
 
-  ; Reiniciamos los contadores por si acaso :)
-  set contador 0
-  set contador-correr 0
-  set contador-shock 0
-  set contador-paralizado 0
-  set contador-buscar-amigos 0
-  set contador-calmado 0
-  set contador-H 0
-  set contador-M 0
-
-  repeat 40 [
-  let new-x random-xcor
-  let new-y random-ycor
-  if [pcolor] of patch new-x new-y != white [
-      create-personas 1 [
-        setxy new-x new-y
-        set shape "person"
-        set genero ifelse-value (random-float 1.0 < 0.5) ["H"] ["M"]
-        set comportamiento escoger-comportamiento
-        set carrera escoger-carrera ;
-        set color color-segun-comportamiento comportamiento
-      ]
-    ]
-  ]
-  etiquetar-personas
-  reset-ticks
-end
-
-to setup-entorno
-;; Establecer el fondo
+  ;; Establecer el fondo
   ask patches [ set pcolor white ]
 
   ;; Crear el pasillo principal
-  ask patches with [ pxcor > -30 and pxcor < 32 and pycor > -5 and pycor < 5 ] [ set pcolor 3 ]
+  ask patches with [ pxcor > -30 and pxcor < 32 and pycor > -5 and pycor < 5 ] [ set pcolor gray ]
 
   ;; Crear escalera salida
   ask patches with [ pxcor > -25 and pxcor < -15 and pycor > 4 and pycor < 15 ] [ set pcolor 8 ]
@@ -110,222 +63,44 @@ to setup-entorno
   ;; Puerta Baños
   ask patches with [ (pxcor = 23 or pxcor = 24 or pxcor = 25) and pycor = -5 ][ set pcolor black ]
 
+  ;; Crear tortugas por salón
+  repeat 40 [
+    let new-x random-xcor
+    let new-y random-ycor
+    if [pcolor] of patch new-x new-y != white [
+      create-turtles 1 [
+        setxy new-x new-y
+        set shape "person"
+      ]
+    ]
+  ]
+
   reset-ticks
 end
 
 to go
-ask turtles [
-  if [pcolor] of patch-here != 8 [ ; Verifica si la "persona" no está en una salida
-    mover-o-evacuar "mover"
-    interaccion-shock
-    interaccion-buscar-amigos
-    agrupar-estudiantes
-    comportamiento-ascensor
-    mover-o-evacuar "evacuar"
-  ]
-
-  ;; La morición ;;
-  ; Si el color del parche en el que se encuentra es igual a 8
-  if [pcolor] of patch-here = 8 [
-  ; Incrementa el contador de comportamiento
-  ifelse comportamiento = "correr" [
-    set contador-correr contador-correr + 1
-  ] [
-    ifelse comportamiento = "shock" [
-      set contador-shock contador-shock + 1
-    ] [
-      ifelse comportamiento = "paralizado" [
-        set contador-paralizado contador-paralizado + 1
-      ] [
-        ifelse comportamiento = "buscar-amigos" [
-          set contador-buscar-amigos contador-buscar-amigos + 1
-        ] [
-          if comportamiento = "calmado" [
-            set contador-calmado contador-calmado + 1
-          ]
-        ]
-      ]
-    ]
-  ]
-
-  ; Incrementa el contador de género
-  ifelse genero = "H" [
-    set contador-H contador-H + 1
-  ] [
-    if genero = "M" [
-      set contador-M contador-M + 1
-    ]
-  ]
-  set contador contador + 1
-  ;; Actualizamos las graficas :D
-  update-plots
-  ; Elimina la tortuga
-  die
-]
-
-]
-tick
-end
-
-to mover-o-evacuar [tipo]
-  ask personas [
-    ; Priorizar los parches negros, luego los de color 3 y finalmente los de color 8
-    let destino-cercano nobody
-
-    ; Si está en el color 8, no necesita cambiar de destino.
+  ask turtles [
+    mover
+    ;; La morición ;;
+    ; Si el color del parche en el que se encuentra es igual a 8
     if [pcolor] of patch-here = 8 [
-      set destino-cercano patch-here
-    ]
-
-    ; Si está en el color 3, el objetivo es el color 8.
-    if [pcolor] of patch-here = 3 [
-      set destino-cercano min-one-of patches with [pcolor = 8] [distance myself]
-    ]
-
-    ; Si está en el color negro, el objetivo es el color 3.
-    if [pcolor] of patch-here = 0 [
-      set destino-cercano min-one-of patches with [pcolor = 3] [distance myself]
-    ]
-
-    ; Si está en cualquier otro color, el objetivo es el negro.
-    if destino-cercano = nobody [
-      set destino-cercano min-one-of patches with [pcolor = 0] [distance myself]
-    ]
-
-    if destino-cercano != nobody [ ; Si hay un destino válido
-      face destino-cercano ; Orientar hacia el destino
-
-      ; Moverse según el comportamiento
-      if comportamiento = "correr" [
-        forward 2
-      ]
-      if comportamiento = "shock" [
-        if tipo = "mover" [
-          set color yellow ; Representa el grito
-          right 20 ; Gira sobre sí misma
-        ]
-      ]
-      if comportamiento = "buscar-amigos" [
-        if tipo = "mover" [
-          let amigo-cercano min-one-of other personas [distance myself]
-          if amigo-cercano != nobody [ ; Asegúrate de que el amigo cercano exista
-            face amigo-cercano
-            forward 1
-          ]
-        ]
-        if tipo = "evacuar" [
-          ifelse random-float 1 < 0.7 [ ; 70% de probabilidad de moverse hacia la salida
-            forward 1
-          ] [
-            right random 45 ; Desvío aleatorio
-            forward 1
-          ]
-        ]
-      ]
-      if comportamiento = "calmado" [
-        forward 0.5
-      ]
+      ; Incrementa el contador global
+      set contador contador + 1
+      ; Elimina la tortuga
+      die
     ]
   ]
+  tick
 end
 
 
-to-report puede-moverse? [steps]
-  let next-patch patch-ahead steps
-  if next-patch != nobody [
-    report [pcolor] of next-patch != white
-  ]
-  report false ; Si no hay un parche adelante, reportar false
-end
 
-to-report escoger-comportamiento
-  let prob random-float 1.0
-  if prob < 0.2 [ report "correr" ]
-  if prob < 0.4 [ report "shock" ]
-  if prob < 0.6 [ report "paralizado" ]
-  if prob < 0.8 [ report "buscar-amigos" ]
-  report "calmado"
-end
 
-to-report color-segun-comportamiento [comp]
-  if comp = "correr" [ report red ]
-  if comp = "shock" [ report orange ]
-  if comp = "paralizado" [ report blue ]
-  if comp = "buscar-amigos" [ report green ]
-  report gray
-end
-
-to interaccion-shock
-  ask personas with [comportamiento = "shock"] [
-    let personas-afectadas personas in-radius 5
-    ask personas-afectadas [
-      if comportamiento = "calmado" [
-        if random-float 1 < 0.5 [ ; 50% de probabilidad de empezar a correr
-          set comportamiento "correr"
-          set color color-segun-comportamiento comportamiento
-        ]
-      ]
-    ]
-  ]
-end
-
-to interaccion-buscar-amigos
-  ask personas with [comportamiento = "buscar-amigos"] [
-    let amigo-cercano min-one-of other personas with [comportamiento = "buscar-amigos"] [distance myself]
-    if amigo-cercano != nobody and distance amigo-cercano < 3 [ ; Asegúrate de que el amigo cercano exista y está a menos de 3 unidades de distancia
-      set comportamiento "calmado"
-      set color color-segun-comportamiento comportamiento
-      set carrera escoger-carrera
-      ask amigo-cercano [
-        set comportamiento "calmado"
-        set color color-segun-comportamiento comportamiento
-      ]
-    ]
-  ]
-end
-
-to setup-salidas
-  ask patches with [(pxcor = min-pxcor) or (pxcor = max-pxcor) or (pycor = min-pycor) or (pycor = max-pycor)] [
-    set pcolor 8 ; Las salidas de emergencia se representarán con el color gris
-  ]
-end
-
-to-report escoger-carrera
-  let carreras ["sis" "ind" "cat" "ele" "mec"]
-  report one-of carreras
-end
-
-to agrupar-estudiantes
-  ask personas [
-    let amigos-cercanos other personas with [carrera = [carrera] of myself] in-radius 5
-    if any? amigos-cercanos [
-      let amigo-cercano one-of amigos-cercanos
-      face amigo-cercano
-    ]
-  ]
-end
-
-to comportamiento-ascensor
-  ; Si el ascensor se detiene, las personas dentro intentarán salir
-  ask patches with [pcolor = orange] [
-    let personas-cercanas personas in-radius 2
-    ask personas-cercanas [
-      set comportamiento "correr"
-    ]
-  ]
-end
-
-to etiquetar-personas
-  ask personas [
-    set label-color white
-    set label (word genero"|"comportamiento"|"carrera)
-  ]
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+8
 10
-1104
+902
 469
 -1
 -1
@@ -336,8 +111,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
+1
+1
 1
 -32
 32
@@ -350,11 +125,11 @@ ticks
 30.0
 
 BUTTON
-1125
-21
-1188
-54
-NIL
+911
+11
+985
+44
+Setup
 setup
 NIL
 1
@@ -367,11 +142,11 @@ NIL
 1
 
 BUTTON
-1126
-62
-1189
-95
-NIL
+912
+51
+985
+84
+Go
 go
 T
 1
@@ -384,55 +159,32 @@ NIL
 1
 
 MONITOR
-1427
-25
-1511
-70
+913
+96
+996
+141
 Evacuados
 contador
 17
 1
 11
 
-PLOT
-1125
-107
-1510
-339
-Perrsonas x comportamiento
-Personas
-Comportamientos
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"Correr" 1.0 0 -16777216 true "" "plot contador-correr"
-"Shock" 1.0 0 -7500403 true "" "plot contador-shock"
-"Buscar amigos" 1.0 0 -2674135 true "" "plot contador-buscar-amigos"
-"Calma" 1.0 0 -955883 true "" "plot contador-calmado"
-
-PLOT
-1126
-360
-1512
-598
-Evacuados X Genero
-Evacuados
-Genero
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"Hombres" 1.0 0 -16777216 true "" "plot contador-H"
-"Mujeres" 1.0 0 -7500403 true "" "plot contador-M"
+BUTTON
+1005
+10
+1079
+43
+Mover
+mover
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
