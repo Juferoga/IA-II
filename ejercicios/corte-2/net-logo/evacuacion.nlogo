@@ -8,6 +8,7 @@ globals [
   contador-H
   contador-M
   contador
+  hora-actual
 ]
 
 
@@ -21,7 +22,7 @@ to setup
   clear-all
   setup-entorno
 
-  ; Reiniciamos los contadores por si acaso :)
+  ; Reiniciar contadores
   set contador 0
   set contador-correr 0
   set contador-shock 0
@@ -32,21 +33,31 @@ to setup
   set contador-M 0
 
   repeat 40 [
-  let new-x random-xcor
-  let new-y random-ycor
-  if [pcolor] of patch new-x new-y != white [
-      create-personas 1 [
-        setxy new-x new-y
-        set shape "person"
-        set genero ifelse-value (random-float 1.0 < 0.5) ["H"] ["M"]
-        set comportamiento escoger-comportamiento
-        set carrera escoger-carrera ;
-        set color color-segun-comportamiento comportamiento
-      ]
+    ifelse random-float 1.0 < prob-salon [
+      ; Crear tortuga en un salón
+      crear-tortuga-en patches with [pcolor = green or pcolor = blue]
+    ] [
+      ; Crear tortuga en el pasillo
+      crear-tortuga-en patches with [pcolor = 3]
     ]
   ]
   etiquetar-personas
   reset-ticks
+end
+
+to crear-tortuga-en [parches-posibles]
+  let new-patch one-of parches-posibles
+  if new-patch != nobody [
+    ask new-patch [
+      sprout-personas 1 [
+        set shape "person"
+        set genero ifelse-value (random-float 1.0 < 0.5) ["H"] ["M"]
+        set comportamiento escoger-comportamiento
+        set carrera escoger-carrera
+        set color color-segun-comportamiento comportamiento
+      ]
+    ]
+  ]
 end
 
 to setup-entorno
@@ -195,25 +206,29 @@ to mover-o-evacuar [tipo]
     if destino-cercano != nobody [ ; Si hay un destino válido
       face destino-cercano ; Orientar hacia el destino
 
-      ; Moverse según el comportamiento
+      ; Verificación adicional para el movimiento
+      let puede-moverse true
+
+      ; Moverse para corre
       if comportamiento = "correr" [
+        if not puede-moverse? 2 [
+          girar-hasta-encontrar-ruta 2
+        ]
         forward 2
       ]
-      if comportamiento = "shock" [
-        if tipo = "mover" [
-          set color yellow ; Representa el grito
-          right 20 ; Gira sobre sí misma
+      if comportamiento = "shock" and tipo = "mover" [
+        set color yellow ; Representa el grito
+        right 20 ; Gira sobre sí misma
+      ]
+      if comportamiento = "buscar-amigos" and tipo = "mover" [
+        let amigo-cercano min-one-of other personas [distance myself]
+        if amigo-cercano != nobody and puede-moverse? 1 [ ; Asegúrate de que el amigo cercano exista
+          face amigo-cercano
+          forward 1
         ]
       ]
-      if comportamiento = "buscar-amigos" [
-        if tipo = "mover" [
-          let amigo-cercano min-one-of other personas [distance myself]
-          if amigo-cercano != nobody [ ; Asegúrate de que el amigo cercano exista
-            face amigo-cercano
-            forward 1
-          ]
-        ]
-        if tipo = "evacuar" [
+      if comportamiento = "buscar-amigos" and tipo = "evacuar" [
+        if puede-moverse? 1 [
           ifelse random-float 1 < 0.7 [ ; 70% de probabilidad de moverse hacia la salida
             forward 1
           ] [
@@ -222,13 +237,20 @@ to mover-o-evacuar [tipo]
           ]
         ]
       ]
-      if comportamiento = "calmado" [
+      if comportamiento = "calmado" and puede-moverse? 0.5 [
         forward 0.5
       ]
     ]
   ]
 end
 
+to girar-hasta-encontrar-ruta [steps]
+  let intentos 0
+  while [not puede-moverse? steps and intentos < 8] [
+    right 45
+    set intentos intentos + 1
+  ]
+end
 
 to-report puede-moverse? [steps]
   let next-patch patch-ahead steps
@@ -237,6 +259,7 @@ to-report puede-moverse? [steps]
   ]
   report false ; Si no hay un parche adelante, reportar false
 end
+
 
 to-report escoger-comportamiento
   let prob random-float 1.0
@@ -321,6 +344,20 @@ to etiquetar-personas
     set label (word genero"|"comportamiento"|"carrera)
   ]
 end
+
+to-report obtener-hora [probabilidad]
+  ; Convertir la probabilidad en minutos. Cada 10% es igual a 3 minutos.
+  let minutos-cambio round((probabilidad / 10) * 3)
+
+  ; Restar esos minutos a 30 (que es la diferencia entre 3:30 y 3:00)
+  let minutos-finales 30 - minutos-cambio
+
+  ; Convertir el tiempo final en una cadena de texto que representa la hora
+  report (word "3:" (ifelse-value (minutos-finales < 10) [word "0" minutos-finales] [minutos-finales]))
+end
+
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -373,7 +410,7 @@ BUTTON
 95
 NIL
 go
-T
+NIL
 1
 T
 OBSERVER
@@ -384,10 +421,10 @@ NIL
 1
 
 MONITOR
-1427
-25
-1511
-70
+1316
+57
+1421
+102
 Evacuados
 contador
 17
@@ -433,6 +470,32 @@ false
 PENS
 "Hombres" 1.0 0 -16777216 true "" "plot contador-H"
 "Mujeres" 1.0 0 -7500403 true "" "plot contador-M"
+
+SLIDER
+1203
+21
+1421
+54
+prob-salon
+prob-salon
+0
+1
+0.1
+0.1
+1
+%
+HORIZONTAL
+
+MONITOR
+1204
+57
+1304
+102
+Hora
+obtener-hora prob-salon
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
