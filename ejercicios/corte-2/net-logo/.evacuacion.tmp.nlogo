@@ -8,9 +8,8 @@ globals [
   contador-H
   contador-M
   contador
-  hora-actual
+  hora
 ]
-
 
 personas-own [
   genero
@@ -48,17 +47,48 @@ end
 to crear-tortuga-en [parches-posibles]
   let new-patch one-of parches-posibles
   if new-patch != nobody [
-    ask new-patch [
-      sprout-personas 1 [
-        set shape "person"
-        set genero ifelse-value (random-float 1.0 < 0.5) ["H"] ["M"]
-        set comportamiento escoger-comportamiento
-        set carrera escoger-carrera
-        set color color-segun-comportamiento comportamiento
+    ; Verifica si hay menos de 40 personas en el salón
+    let num-turtles count turtles-on new-patch
+    if num-turtles < 40 [
+      ask new-patch [
+        sprout-personas 1 [
+          set shape "person"
+          set genero ifelse-value (random-float 1.0 < 0.5) ["H"] ["M"]
+          set comportamiento escoger-comportamiento
+          ; Asignamos la carrera aquí
+          set carrera escoger-carrera plabel
+          print plabe
+          set color color-segun-comportamiento comportamiento
+        ]
       ]
     ]
   ]
 end
+
+to-report escoger-carrera [salon]
+  let carreras ["sis" "ind" "cat" "ele" "mec"]
+  let carrera-predominante ""
+
+  if salon = "Aula 206" [ set carrera-predominante "sis" ]
+  if salon = "Aula 205" [ set carrera-predominante "ind" ]
+  if salon = "Aula 204" [ set carrera-predominante "cat" ]
+  if salon = "Aula 201" [ set carrera-predominante "ele" ]
+  if salon = "Aula 202" [ set carrera-predominante "mec" ]
+  if salon = "Aula 203" [ set carrera-predominante "sis" ]
+
+  ; 70% de probabilidad de que sea la carrera predominante
+  ;ifelse random-float 1.0 < 0.7 and carrera-predominante != "" [
+    report carrera-predominante
+  ;][
+   ; let carreras-alternativas ifelse-value (member? carrera-predominante carreras) [
+    ;  remove-item (position carrera-predominante carreras) carreras
+    ;] [
+     ; carreras
+    ;]
+    ;report one-of carreras-alternativas
+  ;]
+end
+
 
 to setup-entorno
 ;; Establecer el fondo
@@ -298,10 +328,12 @@ to interaccion-buscar-amigos
     if amigo-cercano != nobody and distance amigo-cercano < 3 [ ; Asegúrate de que el amigo cercano exista y está a menos de 3 unidades de distancia
       set comportamiento "calmado"
       set color color-segun-comportamiento comportamiento
-      set carrera escoger-carrera
+      let salon-actual [plabel] of patch-here ; Obtener el nombre del salón en el que se encuentra la tortuga
+      set carrera escoger-carrera salon-actual ; Ajustar la carrera según el salón
       ask amigo-cercano [
         set comportamiento "calmado"
         set color color-segun-comportamiento comportamiento
+        ; No es necesario cambiar la carrera del amigo porque ya está en el mismo salón
       ]
     ]
   ]
@@ -311,11 +343,6 @@ to setup-salidas
   ask patches with [(pxcor = min-pxcor) or (pxcor = max-pxcor) or (pycor = min-pycor) or (pycor = max-pycor)] [
     set pcolor 8 ; Las salidas de emergencia se representarán con el color gris
   ]
-end
-
-to-report escoger-carrera
-  let carreras ["sis" "ind" "cat" "ele" "mec"]
-  report one-of carreras
 end
 
 to agrupar-estudiantes
@@ -345,9 +372,42 @@ to etiquetar-personas
   ]
 end
 
+to-report obtener-hora
+  if prob-salon <= 0.10 [
+    report "2:05 PM"
+  ]
+  if prob-salon > 0.10 and prob-salon <= 0.20 [
+    report "2:10 PM"
+  ]
+  if prob-salon > 0.20 and prob-salon <= 0.40 [
+    report "2:30 PM"
+  ]
+  if prob-salon > 0.40 and prob-salon <= 0.60 [
+    report "4:00 PM"
+  ]
+  if prob-salon > 0.60 and prob-salon <= 0.90 [
+    report "3:30 PM"
+  ]
+  if prob-salon > 0.90 [
+    report "3:40 PM"
+  ]
+end
 
+to reportar-tortugas-por-salon
+  let aula206 count turtles-on patches with [pcolor = green and pxcor = 2 and pycor = 10]
+  let aula205 count turtles-on patches with [pcolor = green and pxcor = 16 and pycor = 10]
+  let aula204 count turtles-on patches with [pcolor = green and pxcor = 26 and pycor = 10]
+  let aula201 count turtles-on patches with [pcolor = blue and pxcor = -10 and pycor = -10]
+  let aula202 count turtles-on patches with [pcolor = blue and pxcor = 5 and pycor = -10]
+  let aula203 count turtles-on patches with [pcolor = blue and pxcor = 16 and pycor = -10]
 
-
+  print (word "Aula 206: " aula206)
+  print (word "Aula 205: " aula205)
+  print (word "Aula 204: " aula204)
+  print (word "Aula 201: " aula201)
+  print (word "Aula 202: " aula202)
+  print (word "Aula 203: " aula203)
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -470,7 +530,7 @@ prob-salon
 prob-salon
 0
 1
-0.1
+1.0
 0.1
 1
 %
@@ -482,7 +542,84 @@ MONITOR
 1304
 102
 Hora
-obtener-hora prob-salon
+obtener-hora
+17
+1
+11
+
+MONITOR
+212
+490
+340
+535
+206
+turtles-on patches with [pcolor = green and pxcor > -5 and pxcor < 8 and pycor > 5 and pycor < 15]
+17
+1
+11
+
+MONITOR
+347
+490
+476
+535
+205
+turtles-on patches with [pcolor = green and pxcor > 8 and pxcor < 20 and pycor > 5 and pycor < 15]
+17
+1
+11
+
+MONITOR
+482
+490
+609
+535
+204
+turtles-on patches with [pcolor = green and pxcor > 20 and pxcor < 32 and pycor > 5 and pycor < 15]
+17
+1
+11
+
+MONITOR
+214
+611
+342
+656
+201
+turtles-on patches with [pcolor = blue and pxcor > -15 and pxcor < -2 and pycor > -15 and pycor < -5]
+17
+1
+11
+
+MONITOR
+350
+612
+478
+657
+202
+turtles-on patches with [pxcor > -2 and pxcor < 10 and pycor > -15 and pycor < -5]
+17
+1
+11
+
+MONITOR
+485
+611
+612
+656
+203
+turtles-on patches with [pxcor > 10 and pxcor < 22 and pycor > -15 and pycor < -5]
+17
+1
+11
+
+MONITOR
+246
+550
+576
+595
+Pasillo
+turtles-on patches with [pxcor > -30 and pxcor < 32 and pycor > -5 and pycor < 5]
 17
 1
 11
