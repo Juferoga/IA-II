@@ -31,7 +31,7 @@ to setup
   set contador-H 0
   set contador-M 0
 
-  repeat 40 [
+  repeat 200 [
     ifelse random-float 1.0 < prob-salon [
       ; Crear tortuga en un salón
       crear-tortuga-en patches with [pcolor = green or pcolor = blue]
@@ -57,7 +57,6 @@ to crear-tortuga-en [parches-posibles]
           set comportamiento escoger-comportamiento
           ; Asignamos la carrera aquí
           set carrera escoger-carrera plabel
-          print plabe
           set color color-segun-comportamiento comportamiento
         ]
       ]
@@ -77,16 +76,16 @@ to-report escoger-carrera [salon]
   if salon = "Aula 203" [ set carrera-predominante "sis" ]
 
   ; 70% de probabilidad de que sea la carrera predominante
-  ;ifelse random-float 1.0 < 0.7 and carrera-predominante != "" [
+  ifelse random-float 1.0 < 0.7 and carrera-predominante != "" [
     report carrera-predominante
-  ;][
-   ; let carreras-alternativas ifelse-value (member? carrera-predominante carreras) [
-    ;  remove-item (position carrera-predominante carreras) carreras
-    ;] [
-     ; carreras
-    ;]
-    ;report one-of carreras-alternativas
-  ;]
+  ][
+    let carreras-alternativas ifelse-value (member? carrera-predominante carreras) [
+      remove-item (position carrera-predominante carreras) carreras
+    ] [
+      carreras
+    ]
+    report one-of carreras-alternativas
+  ]
 end
 
 
