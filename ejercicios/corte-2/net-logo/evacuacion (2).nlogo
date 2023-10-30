@@ -5,6 +5,7 @@ globals [
   contador-paralizado
   contador-buscar-amigos
   contador-calmado
+  contador-control
   contador-H
   contador-M
   contador
@@ -28,16 +29,17 @@ to setup
   set contador-paralizado 0
   set contador-buscar-amigos 0
   set contador-calmado 0
+  set contador-control 0
   set contador-H 0
   set contador-M 0
 
-  repeat 200 [
+  repeat 40 [
     ifelse random-float 1.0 < prob-salon [
       ; Crear tortuga en un salón
-      crear-tortuga-en patches with [pcolor = green or pcolor = blue]
+      crear-tortuga-en patches with [pcolor = 57 or pcolor = 57]
     ] [
       ; Crear tortuga en el pasillo
-      crear-tortuga-en patches with [pcolor = 3]
+      crear-tortuga-en patches with [pcolor = 6]
     ]
   ]
   etiquetar-personas
@@ -54,7 +56,7 @@ to crear-tortuga-en [parches-posibles]
         sprout-personas 1 [
           set shape "person"
           set genero ifelse-value (random-float 1.0 < 0.5) ["H"] ["M"]
-          set comportamiento escoger-comportamiento
+          set comportamiento escoger-comportamiento genero
           ; Asignamos la carrera aquí
           set carrera escoger-carrera plabel
           set color color-segun-comportamiento comportamiento
@@ -94,38 +96,38 @@ to setup-entorno
   ask patches [ set pcolor white ]
 
   ;; Crear el pasillo principal
-  ask patches with [ pxcor > -30 and pxcor < 32 and pycor > -5 and pycor < 5 ] [ set pcolor 3 ]
+  ask patches with [ pxcor > -30 and pxcor < 32 and pycor > -5 and pycor < 5 ] [ set pcolor 6 ]
 
   ;; Crear escalera salida
   ask patches with [ pxcor > -25 and pxcor < -15 and pycor > 4 and pycor < 15 ] [ set pcolor 8 ]
   ask patches with [ pxcor = -18 and pycor = 10 ][ set plabel "Escalera salida" ]
 
   ;; Crear escalera
-  ask patches with [ pxcor > -25 and pxcor < -15 and pycor > -15 and pycor < -4 ] [ set pcolor red ]
+  ask patches with [ pxcor > -25 and pxcor < -15 and pycor > -15 and pycor < -4 ] [ set pcolor 17 ]
   ask patches with [ pxcor = -18 and pycor = -10 ][ set plabel "Escalera subida" ]
 
   ;; Crear ascensor
-  ask patches with [ pxcor > -15 and pxcor < -5 and pycor > 5 and pycor < 15 ] [ set pcolor orange ]
+  ask patches with [ pxcor > -15 and pxcor < -5 and pycor > 5 and pycor < 15 ] [ set pcolor 27 ]
   ask patches with [ pxcor = -10 and pycor = 10 ][ set plabel "Ascensor" ]
 
-  ;; Crear salones a la derecha del pasillo (verde)
-  ask patches with [ pxcor > -5 and pxcor < 8 and pycor > 5 and pycor < 15 ] [ set pcolor green ]
+  ;; Crear salones a la derecha del pasillo
+  ask patches with [ pxcor > -5 and pxcor < 8 and pycor > 5 and pycor < 15 ] [ set pcolor 57 ]
   ask patches with [ pxcor = 2 and pycor = 10 ][ set plabel "Aula 206" ]
 
-  ask patches with [ pxcor > 8 and pxcor < 20 and pycor > 5 and pycor < 15 ] [ set pcolor green ]
+  ask patches with [ pxcor > 8 and pxcor < 20 and pycor > 5 and pycor < 15 ] [ set pcolor 57 ]
   ask patches with [ pxcor = 16 and pycor = 10 ][ set plabel "Aula 205" ]
 
-  ask patches with [ pxcor > 20 and pxcor < 32 and pycor > 5 and pycor < 15 ] [ set pcolor green ]
+  ask patches with [ pxcor > 20 and pxcor < 32 and pycor > 5 and pycor < 15 ] [ set pcolor 57 ]
   ask patches with [ pxcor = 26 and pycor = 10 ][ set plabel "Aula 204" ]
 
-  ;; Crear salones a la izquierda del pasillo (azul)
-  ask patches with [ pxcor > -15 and pxcor < -2 and pycor > -15 and pycor < -5 ] [ set pcolor blue ]
+  ;; Crear salones a la izquierda del pasillo
+  ask patches with [ pxcor > -15 and pxcor < -2 and pycor > -15 and pycor < -5 ] [ set pcolor 57 ]
   ask patches with [ pxcor = -10 and pycor = -10 ][ set plabel "Aula 201" ]
 
-  ask patches with [ pxcor > -2 and pxcor < 10 and pycor > -15 and pycor < -5 ] [ set pcolor blue ]
+  ask patches with [ pxcor > -2 and pxcor < 10 and pycor > -15 and pycor < -5 ] [ set pcolor 57 ]
   ask patches with [ pxcor = 5 and pycor = -10 ][ set plabel "Aula 202" ]
 
-  ask patches with [ pxcor > 10 and pxcor < 22 and pycor > -15 and pycor < -5 ] [ set pcolor blue ]
+  ask patches with [ pxcor > 10 and pxcor < 22 and pycor > -15 and pycor < -5 ] [ set pcolor 57 ]
   ask patches with [ pxcor = 16 and pycor = -10 ][ set plabel "Aula 203" ]
 
   ;; Crear baños
@@ -134,21 +136,21 @@ to setup-entorno
 
   ;; Crear puertas
   ;; Puerta Ascensor
-  ask patches with [ (pxcor = -14 or pxcor = -13 or pxcor = -12) and pycor = 5 ][ set pcolor black ]
+  ask patches with [ (pxcor = -14 or pxcor = -13 or pxcor = -12) and pycor = 5 ][ set pcolor 2 ]
   ;; Puerta 204
-  ask patches with [ (pxcor = -4 or pxcor = -3 or pxcor = -2) and pycor = 5 ][ set pcolor black ]
+  ask patches with [ (pxcor = -4 or pxcor = -3 or pxcor = -2) and pycor = 5 ][ set pcolor 2 ]
   ;; Puerta 205
-  ask patches with [ (pxcor = 9 or pxcor = 10 or pxcor = 11) and pycor = 5 ][ set pcolor black ]
+  ask patches with [ (pxcor = 9 or pxcor = 10 or pxcor = 11) and pycor = 5 ][ set pcolor 2 ]
   ;; Puerta 206
-  ask patches with [ (pxcor = 21 or pxcor = 22 or pxcor = 23) and pycor = 5 ][ set pcolor black ]
+  ask patches with [ (pxcor = 21 or pxcor = 22 or pxcor = 23) and pycor = 5 ][ set pcolor 2 ]
   ;; Puerta 201
-  ask patches with [ (pxcor = -14 or pxcor = -13 or pxcor = -12) and pycor = -5 ][ set pcolor black ]
+  ask patches with [ (pxcor = -14 or pxcor = -13 or pxcor = -12) and pycor = -5 ][ set pcolor 2 ]
   ;; Puerta 202
-  ask patches with [ (pxcor = -1 or pxcor = 0 or pxcor = 1) and pycor = -5 ][ set pcolor black ]
+  ask patches with [ (pxcor = -1 or pxcor = 0 or pxcor = 1) and pycor = -5 ][ set pcolor 2 ]
   ;; Puerta 203
-  ask patches with [ (pxcor = 11 or pxcor = 12 or pxcor = 13) and pycor = -5 ][ set pcolor black ]
+  ask patches with [ (pxcor = 11 or pxcor = 12 or pxcor = 13) and pycor = -5 ][ set pcolor 2 ]
   ;; Puerta Baños
-  ask patches with [ (pxcor = 23 or pxcor = 24 or pxcor = 25) and pycor = -5 ][ set pcolor black ]
+  ask patches with [ (pxcor = 23 or pxcor = 24 or pxcor = 25) and pycor = -5 ][ set pcolor 2 ]
 
   reset-ticks
 end
@@ -164,45 +166,42 @@ ask turtles [
     mover-o-evacuar "evacuar"
   ]
 
-  ;; La morición ;;
-  ; Si el color del parche en el que se encuentra es igual a 8
-  if [pcolor] of patch-here = 8 [
+;; La morición ;;
+; Si el color del parche en el que se encuentra es igual a 8
+if [pcolor] of patch-here = 8 [
   ; Incrementa el contador de comportamiento
-  ifelse comportamiento = "correr" [
+  if comportamiento = "correr" [
     set contador-correr contador-correr + 1
-  ] [
-    ifelse comportamiento = "shock" [
-      set contador-shock contador-shock + 1
-    ] [
-      ifelse comportamiento = "paralizado" [
-        set contador-paralizado contador-paralizado + 1
-      ] [
-        ifelse comportamiento = "buscar-amigos" [
-          set contador-buscar-amigos contador-buscar-amigos + 1
-        ] [
-          if comportamiento = "calmado" [
-            set contador-calmado contador-calmado + 1
-          ]
-        ]
-      ]
-    ]
   ]
+  if comportamiento = "shock" [
+    set contador-shock contador-shock + 1
+  ]
+  if comportamiento = "paralizado" [
+    set contador-paralizado contador-paralizado + 1
+  ]
+  if comportamiento = "buscar-amigos" [
+    set contador-buscar-amigos contador-buscar-amigos + 1
+  ]
+  if comportamiento = "calmado" [
+    set contador-calmado contador-calmado + 1
+  ]
+  if comportamiento = "control" [
+    set contador-control contador-control + 1
+  ]
+]
 
-  ; Incrementa el contador de género
-  ifelse genero = "H" [
+; Incrementa el contador de género
+  if genero = "H" [
     set contador-H contador-H + 1
-  ] [
-    if genero = "M" [
-      set contador-M contador-M + 1
-    ]
-  ]
+]
+  if genero = "M" [
+   set contador-M contador-M + 1
+]
   set contador contador + 1
   ;; Actualizamos las graficas :D
   update-plots
   ; Elimina la tortuga
   die
-]
-
 ]
 tick
 end
@@ -217,19 +216,19 @@ to mover-o-evacuar [tipo]
       set destino-cercano patch-here
     ]
 
-    ; Si está en el color 3, el objetivo es el color 8.
-    if [pcolor] of patch-here = 3 [
+    ; Si está en el color 6, el objetivo es el color 8.
+    if [pcolor] of patch-here = 6 [
       set destino-cercano min-one-of patches with [pcolor = 8] [distance myself]
     ]
 
-    ; Si está en el color negro, el objetivo es el color 3.
-    if [pcolor] of patch-here = 0 [
-      set destino-cercano min-one-of patches with [pcolor = 3] [distance myself]
+    ; Si está en el color 2, el objetivo es el color 3.
+    if [pcolor] of patch-here = 2 [
+      set destino-cercano min-one-of patches with [pcolor = 6] [distance myself]
     ]
 
-    ; Si está en cualquier otro color, el objetivo es el negro.
+    ; Si está en cualquier otro color, el objetivo es el 2.
     if destino-cercano = nobody [
-      set destino-cercano min-one-of patches with [pcolor = 0] [distance myself]
+      set destino-cercano min-one-of patches with [pcolor = 2] [distance myself]
     ]
 
     if destino-cercano != nobody [ ; Si hay un destino válido
@@ -269,6 +268,19 @@ to mover-o-evacuar [tipo]
       if comportamiento = "calmado" and puede-moverse? 0.5 [
         forward 0.5
       ]
+      if comportamiento = "control" [
+        ; Buscar una persona cercana en shock
+        let persona-shock-cercana one-of personas in-radius 5 with [comportamiento = "shock"]
+        if persona-shock-cercana != nobody [
+          ; Cambiar el comportamiento de esa persona a "calmado"
+          ask persona-shock-cercana [
+            set comportamiento "calmado"
+            set color color-segun-comportamiento comportamiento
+          ]
+          face persona-shock-cercana ; Se dirige hacia la persona en shock
+        ]
+        forward 1 ; Se mueve a una velocidad moderada
+     ]
     ]
   ]
 end
@@ -290,21 +302,42 @@ to-report puede-moverse? [steps]
 end
 
 
-to-report escoger-comportamiento
+to-report escoger-comportamiento [gen]
   let prob random-float 1.0
-  if prob < 0.2 [ report "correr" ]
-  if prob < 0.4 [ report "shock" ]
-  if prob < 0.6 [ report "paralizado" ]
-  if prob < 0.8 [ report "buscar-amigos" ]
-  report "calmado"
+  let combinaciones []
+
+  if gen = "H" [ ; Hombres
+    set combinaciones [["correr" "buscar-amigos"] ["control" "calmado"]]
+    if prob < 0.15 [ report item 0 combinaciones ]
+    if prob >= 0.15 and prob < 0.3 [ report item 1 combinaciones ]
+    if prob >= 0.3 and prob < 0.5 [ report "correr" ]
+    if prob >= 0.5 and prob < 0.65 [ report "shock" ]
+    if prob >= 0.65 and prob < 0.75 [ report "paralizado" ]
+    if prob >= 0.75 and prob < 0.85 [ report "buscar-amigos" ]
+    if prob >= 0.85 and prob < 0.95 [ report "control" ]
+    report "calmado"
+  ]
+
+  if gen = "M" [ ; Mujeres
+    set combinaciones [["shock" "paralizado"] ["calmado" "control"]]
+    if prob < 0.15 [ report item 0 combinaciones ]
+    if prob >= 0.15 and prob < 0.3 [ report item 1 combinaciones ]
+    if prob >= 0.3 and prob < 0.5 [ report "calmado" ]
+    if prob >= 0.5 and prob < 0.65 [ report "paralizado" ]
+    if prob >= 0.65 and prob < 0.8 [ report "shock" ]
+    if prob >= 0.8 and prob < 0.9 [ report "buscar-amigos" ]
+    if prob >= 0.9 and prob < 0.95 [ report "control" ]
+    report "correr"
+  ]
 end
 
 to-report color-segun-comportamiento [comp]
   if comp = "correr" [ report red ]
-  if comp = "shock" [ report orange ]
-  if comp = "paralizado" [ report blue ]
-  if comp = "buscar-amigos" [ report green ]
-  report gray
+  if comp = "shock" [ report lime ]
+  if comp = "paralizado" [ report sky ]
+  if comp = "buscar-amigos" [ report magenta ]
+  if comp = "control" [ report pink ]
+  report violet
 end
 
 to interaccion-shock
@@ -356,10 +389,10 @@ end
 
 to comportamiento-ascensor
   ; Si el ascensor se detiene, las personas dentro intentarán salir
-  ask patches with [pcolor = orange] [
+  ask patches with [pcolor = 27] [
     let personas-cercanas personas in-radius 2
     ask personas-cercanas [
-      set comportamiento "correr"
+      set comportamiento "paralizado"
     ]
   ]
 end
@@ -393,12 +426,12 @@ to-report obtener-hora
 end
 
 to reportar-tortugas-por-salon
-  let aula206 count turtles-on patches with [pcolor = green and pxcor = 2 and pycor = 10]
-  let aula205 count turtles-on patches with [pcolor = green and pxcor = 16 and pycor = 10]
-  let aula204 count turtles-on patches with [pcolor = green and pxcor = 26 and pycor = 10]
-  let aula201 count turtles-on patches with [pcolor = blue and pxcor = -10 and pycor = -10]
-  let aula202 count turtles-on patches with [pcolor = blue and pxcor = 5 and pycor = -10]
-  let aula203 count turtles-on patches with [pcolor = blue and pxcor = 16 and pycor = -10]
+  let aula206 count turtles-on patches with [pcolor = 57 and pxcor = 2 and pycor = 10]
+  let aula205 count turtles-on patches with [pcolor = 57 and pxcor = 16 and pycor = 10]
+  let aula204 count turtles-on patches with [pcolor = 57 and pxcor = 26 and pycor = 10]
+  let aula201 count turtles-on patches with [pcolor = 57 and pxcor = -10 and pycor = -10]
+  let aula202 count turtles-on patches with [pcolor = 57 and pxcor = 5 and pycor = -10]
+  let aula203 count turtles-on patches with [pcolor = 57 and pxcor = 16 and pycor = -10]
 
   print (word "Aula 206: " aula206)
   print (word "Aula 205: " aula205)
@@ -529,7 +562,7 @@ prob-salon
 prob-salon
 0
 1
-1.0
+0.0
 0.1
 1
 %
